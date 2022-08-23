@@ -25,6 +25,15 @@ async function default_1(Data, Protocol) {
                 value,
             });
         },
+        async helloWorld() {
+            const op = {
+                type: "helloworld",
+            };
+            await Protocol(op);
+        },
+        async sayHello() {
+            return Data.get("hello");
+        },
     };
 }
 exports.default = default_1;
@@ -53,6 +62,10 @@ async function default_1(op, Data) {
             if (!p)
                 break;
             await Data.del(op.key);
+            break;
+        }
+        case "helloworld": {
+            await Data.put({ key: "hello", value: "hello world" });
             break;
         }
         default:

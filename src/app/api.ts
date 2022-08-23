@@ -22,5 +22,14 @@ export default async function (Data, Protocol) {
         value,
       })
     },
+    async helloWorld() {
+      const op = {
+        type: "helloworld",
+      }
+      await Protocol(op)
+    },
+    async sayHello() {
+      return Data.get("hello")
+    },
   }
 }

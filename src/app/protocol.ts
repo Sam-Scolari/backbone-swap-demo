@@ -11,6 +11,10 @@ export default async function(op, Data) {
       await Data.del(op.key)
       break
     }
+    case "helloworld": {
+      await Data.put({ key: "hello", value: "hello world" })
+      break
+    }
     default:
       return Data.discard(op, "unknown operation")
   }
