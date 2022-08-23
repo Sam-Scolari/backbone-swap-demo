@@ -1,0 +1,18 @@
+{
+  "app": {
+    "address": "0x9CfcF5D22B36625980A6e7dFdcC9D8Fc39b53227",
+    "@id": "",
+    "name": "backbone-swap-demo",
+    "description": "",
+    "website": "",
+    "git": "",
+    "version": "0.0.1",
+    "permissions": []
+  },
+  "settings": {
+    "encryption_key": "ce93b648b87e9fc86be715268ce61cc83d3b335ffcba6dfde3f0dcef437d1baa",
+    "private": false,
+    "storage": "rai",
+    "forced_auth": false
+  }
+}
