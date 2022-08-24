@@ -45,8 +45,8 @@ export default function App() {
                 y2="52"
                 gradientUnits="userSpaceOnUse"
               >
-                <stop stop-color="#C144F6" />
-                <stop offset="1" stop-color="#5149DA" />
+                <stop stopColor="#C144F6" />
+                <stop offset="1" stopColor="#5149DA" />
               </linearGradient>
             </defs>
           </svg>
