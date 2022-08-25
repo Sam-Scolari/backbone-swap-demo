@@ -4,8 +4,8 @@
   "description": "Backbone App",
   "main": "src/index.js",
   "scripts": {
+    "dev": "vite",
     "build:watch": "budo src/index.ts --live --dir tests/www --port 1337 -- -p [ tsify ]",
-    "build:watch:react": "budo src/index.ts --live --dir tests/www --port 1337 -- -p [ tsify ] -t [ babelify --presets [ @babel/preset-env @babel/preset-react ] ]",
     "build:full": "npm run build:app && npm run build:ui && npm run build:minify:app && npm run build:minify:ui",
     "build:app": "mkdirp dist && browserify src/app/index.ts --standalone app -p [ tsify ] > dist/app.js",
     "build:ui": "mkdirp dist && vite build",
@@ -27,8 +27,6 @@
     "b4a": "^1.6.0",
     "babelify": "^10.0.0",
     "browserify": "^17.0.0",
-    "browserify-css": "^0.15.0",
-    "budo": "^11.7.0",
     "mkdirp": "^1.0.4",
     "postcss": "^8.4.16",
     "react": "^18.2.0",

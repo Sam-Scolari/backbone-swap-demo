@@ -1,53 +1,93 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="./core/dist/core.min.js"></script>
-    <script type="module">
-      import Config from "./backbone.json"
-      window["backbone"] = {
-        user: async (params = { name: "", permissions: "", address: "" }) => {
-          if (!window["backbone"].app) {
-            console.log("Error: load app before authenticating")
-            return
-          }
-          if (!window["backbone"].id) window["backbone"].id = await bb.User()
+<!-- 
 
-          let manifest = Config.app
-          if (manifest) {
-            if (typeof manifest !== "object") manifest = JSON.parse(manifest)
+  DO NOT EDIT THIS PAGE - IT IS MEANT FOR DEVELOPMENT PURPOSES ONLY
+  AND IS NOT INCLUDED INTO PRODUCTION BUILD
 
-            // Get app manifest
-            // Register app to Id
-            await window["backbone"].id.registerApp(manifest)
-
-            // Ask user to authenticate
-            if (!(await window["backbone"].id.authenticate(params))) throw new Error("authentication failed")
-
-            // Check if user actually authenticated
-            window["backbone"].app_profile = await window["backbone"].id.isAuthenticated({
-              address: manifest.address,
-            })
-            if (typeof window["backbone"].app_profile != "object") throw new Error("loading app profile failed")
-          } else {
-            throw new Error("no manifest found")
-          }
-        },
-      }
-    </script>
-    <title>Backbone App</title>
-  </head>
-  <body>
-    <div id="UI"></div>
-    <script type="module">
-      import Config from "./backbone.json"
-      import app from "./src/app/index.ts"
-      import ui from "./src/ui/index.tsx"
-      let dev_address = localStorage.getItem("ADDRESS") || "0x" + bb.Crypto.buf2hex(bb.Crypto.randomBytes(32))
-      window["backbone"].app = await bb.Core({ config: { ...Config.settings, address: dev_address }, app })
-      ui()
-    </script>
-  </body>
-</html>
+ -->
+ <!DOCTYPE html>
+ <html lang="en">
+   <head>
+     <meta charset="UTF-8" />
+     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+     <script src="./core/dist/core.min.js"></script>
+     <script type="module">
+       // let's set the logs on
+       localStorage.setItem("LOG", 1)
+ 
+       import Config from "./backbone.json"
+       window["backbone"] = {
+         user: async (params = { name: "", permissions: "", address: "" }) => {
+           if (!window["backbone"].app) {
+             console.log("Error: load app before authenticating")
+             return
+           }
+           if (!window["backbone"].id) window["backbone"].id = await bb.User()
+ 
+           let manifest = Config.app
+           if (manifest) {
+             if (typeof manifest !== "object") manifest = JSON.parse(manifest)
+ 
+             // Get app manifest
+             // Register app to Id
+             await window["backbone"].id.registerApp(manifest)
+ 
+             // Ask user to authenticate
+             if (!(await window["backbone"].id.authenticate(params))) throw new Error("authentication failed")
+ 
+             // Check if user actually authenticated
+             window["backbone"].app_profile = await window["backbone"].id.isAuthenticated({
+               address: manifest.address,
+             })
+             if (typeof window["backbone"].app_profile != "object") throw new Error("loading app profile failed")
+           } else {
+             throw new Error("no manifest found")
+           }
+         },
+       }
+     </script>
+     <title>Backbone App</title>
+   </head>
+   <body>
+     <div id="UI"></div>
+     <script type="module">
+       import Config from "./backbone.json"
+       import app from "./src/app/index.ts"
+       import ui from "./src/ui/index.tsx"
+       backbone._getAddresses = function () {
+         let addresses = localStorage.getItem("ADDRESSES") || {}
+         if (typeof addresses === "string") addresses = JSON.parse(addresses)
+         return addresses
+       }
+       const addresses = backbone._getAddresses()
+       let dev_address = addresses[Config.address] || "0x" + bb.Crypto.buf2hex(bb.Crypto.randomBytes(32))
+ 
+       backbone._lockAddress = function (address) {
+         const addresses = backbone._getAddresses()
+         addresses[Config.address] = address || dev_address
+         localStorage.setItem("ADDRESSES", JSON.stringify(addresses))
+         if(address) location.href = location.href
+       }
+       backbone._removeAddress = function () {
+         const addresses = backbone._getAddresses()
+         delete addresses[Config.address]
+         localStorage.setItem("ADDRESSES", JSON.stringify(addresses))
+       }
+ 
+       window["backbone"].app = await bb.Core({ config: { ...Config.settings, address: dev_address }, app })
+       ui()
+ 
+       console.log(`\n>>>>> DEVELOPMENT MODE <<<<<\n`)
+       console.log(`>> APPLICATION WAS DEPLOYED TO RANDOM ${dev_address} ADDRESS`)
+       console.log(`>> If you want to temporarily "lock" this address for testing the app in the future,`)
+       console.log(`>> run backbone._lockAddress() in the console.`)
+       console.log(
+         `>> When you want to connect another browser to this app, execute backbone._lockAddress('${dev_address}')`
+       )
+       console.log(`>> the 2nd browser to connect to ${dev_address} address as well`)
+       console.log(`\n>> When you want to remove the lock-in, run backbone._removeAddress()`)
+       console.log(`\n\n`)
+     </script>
+   </body>
+ </html>
+ 
