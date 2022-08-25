@@ -2,6 +2,9 @@
 import React from "react";
 import { useState } from "react";
 // import { useAccount } from "wagmi";
+// @ts-ignore
+import logo from "./logo.png"
+
 
 export default function App() {
   const [slippage, setSlippage] = useState(0.1);
@@ -15,6 +18,7 @@ export default function App() {
 
   return (
     <div className="w-full h-screen p-8">
+      <img src={logo} style={{'height': '20px'}} />
       <header className="flex items-center justify-between">
         <div className="flex items-center">
           <svg

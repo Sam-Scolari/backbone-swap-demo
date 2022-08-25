@@ -5,8 +5,18 @@
 
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "./index.css";
+// @ts-ignore
+import styles from "./index.css"
 import App from "./App";
+
+// install styles to the document
+if(typeof window === 'object') {
+  const css = document.createElement('style')
+  css.setAttribute('id', 'app-style')
+  css.innerText = styles
+  document.body.appendChild(css)
+}
+
 // import "@rainbow-me/rainbowkit/styles.css";
 // import { getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 // import { chain, configureChains, createClient, WagmiConfig } from "wagmi";

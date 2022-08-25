@@ -8,25 +8,23 @@
     "build:watch:react": "budo src/index.ts --live --dir tests/www --port 1337 -- -p [ tsify ] -t [ babelify --presets [ @babel/preset-env @babel/preset-react ] ]",
     "build:full": "npm run build:app && npm run build:ui && npm run build:minify:app && npm run build:minify:ui",
     "build:app": "mkdirp dist && browserify src/app/index.ts --standalone app -p [ tsify ] > dist/app.js",
-    "build:ui": "mkdirp dist && browserify src/ui/index.tsx --standalone ui -p [ tsify ] -t [ babelify --presets [ @babel/preset-env @babel/preset-react ]  ] > dist/ui.js",
+    "build:ui": "mkdirp dist && vite build",
     "build:app:debug": "mkdirp dist && browserify src/app/index.ts --debug --standalone app -p [ tsify ] > dist/app.js && uglifyjs dist/app.js --source-map \"content=inline\" --source-map \"url=inline\" -o dist/app.min.js",
-    "build:full:nomin": "npm run build:app && npm run build:ui && uglifyjs dist/app.js > dist/app.min.js && uglifyjs dist/ui.js > dist/ui.min.js",
+    "build:full:nomin": "npm run build:app && npm run build:ui && uglifyjs dist/app.js > dist/app.min.js && uglifyjs dist/ui.umd.js > dist/ui.min.js",
     "build:app:nomin": "npm run build:app && uglifyjs dist/app.js > dist/app.min.js",
-    "build:ui:nomin": "npm run build:ui && uglifyjs dist/ui.js > dist/ui.min.js",
+    "build:ui:nomin": "npm run build:ui && uglifyjs dist/ui.umd.js > dist/ui.min.js",
     "build:minify:app": "uglifyjs dist/app.js --compress --mangle > dist/app.min.js",
-    "build:minify:ui": "uglifyjs dist/ui.js --compress --mangle > dist/ui.min.js"
+    "build:minify:ui": "uglifyjs dist/ui.umd.js --compress --mangle > dist/ui.min.js"
   },
   "keywords": [],
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "@babel/core": "^7.18.10",
-    "@babel/plugin-proposal-class-properties": "^7.18.6",
-    "@babel/preset-env": "^7.18.10",
-    "@babel/preset-react": "^7.18.6",
     "@playwright/test": "^1.21.1",
     "@types/node": "^18.7.2",
     "@types/react": "^18.0.17",
     "autoprefixer": "^10.4.8",
+    "b4a": "^1.6.0",
     "babelify": "^10.0.0",
     "browserify": "^17.0.0",
     "browserify-css": "^0.15.0",
@@ -35,17 +33,12 @@
     "postcss": "^8.4.16",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "reactify": "^1.1.1",
     "tailwindcss": "^3.1.8",
     "ts-node": "^10.9.1",
     "tsify": "^5.0.4",
     "typescript": "^4.7.4",
-    "uglify-js": "^3.15.4"
-  },
-  "browserify": {
-    "transform": [
-      "browserify-css"
-    ]
+    "uglify-js": "^3.15.4",
+    "vite": "^3.0.9"
   },
   "dependencies": {
     "@rainbow-me/rainbowkit": "^0.4.0",
