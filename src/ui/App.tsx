@@ -3,7 +3,13 @@ import React, { useEffect } from "react";
 import { useState } from "react";
 import { chainId, useAccount, useBalance, useNetwork } from "wagmi";
 import { publicProvider } from "wagmi/providers/public";
-import { Token, CurrencyAmount, TradeType, Percent } from "@uniswap/sdk-core";
+import {
+  Token,
+  CurrencyAmount,
+  TradeType,
+  Percent,
+  NativeCurrency,
+} from "@uniswap/sdk-core";
 import { ethers, BigNumber } from "ethers";
 
 // @ts-ignore
@@ -74,8 +80,11 @@ export default function App() {
       let wei = ethers.utils.parseUnits(fromAmount.toString(), DECIMALS);
 
       const route: any = await router.route(
-        CurrencyAmount.fromRawAmount(TOKENS[fromToken], JSBI.BigInt(wei)),
-        TOKENS[toToken],
+        CurrencyAmount.fromRawAmount(
+          fromToken === "ETH" ? TOKENS["WETH"] : TOKENS[fromToken],
+          JSBI.BigInt(wei)
+        ),
+        toToken === "ETH" ? TOKENS["WETH"] : TOKENS[toToken],
         TradeType.EXACT_INPUT,
         {
           recipient: address,
@@ -100,8 +109,11 @@ export default function App() {
       let wei = ethers.utils.parseUnits(toAmount.toString(), DECIMALS);
 
       const route: any = await router.route(
-        CurrencyAmount.fromRawAmount(TOKENS[toToken], JSBI.BigInt(wei)),
-        TOKENS[fromToken],
+        CurrencyAmount.fromRawAmount(
+          toToken === "ETH" ? TOKENS["WETH"] : TOKENS[toToken],
+          JSBI.BigInt(wei)
+        ),
+        fromToken === "ETH" ? TOKENS["WETH"] : TOKENS[fromToken],
         TradeType.EXACT_OUTPUT,
         {
           recipient: address,
@@ -114,6 +126,19 @@ export default function App() {
       setRatio(parseFloat((quoteAmountIn / toAmount).toFixed(3)));
       setFromAmount(quoteAmountIn);
     }
+  }
+
+  function getButtonText() {
+    if (address) {
+      if (ratio) {
+        if (fromToken === "ETH") {
+          return "Wrap";
+        }
+        return "Swap";
+      }
+      return "Set Amount";
+    }
+    return "Connect Wallet";
   }
 
   return (
@@ -268,7 +293,7 @@ export default function App() {
                     : "text-white bg-[#aaaaaa]"
                 } ${ratio ? "cursor-pointer" : "cursor-auto"}`}
               >
-                {address ? (ratio ? "Swap" : "Set Amount") : "Connect Wallet"}
+                {getButtonText()}
               </button>
             )}
           </ConnectButton.Custom>
