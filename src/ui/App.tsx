@@ -1,131 +1,277 @@
-// import { ConnectButton } from "@rainbow-me/rainbowkit";
-import React from "react";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import React, { useEffect } from "react";
 import { useState } from "react";
-// import { useAccount } from "wagmi";
-// @ts-ignore
-import logo from "./logo.png"
+import { chainId, useAccount, useBalance, useNetwork } from "wagmi";
+import { publicProvider } from "wagmi/providers/public";
+import { Token, CurrencyAmount, TradeType, Percent } from "@uniswap/sdk-core";
+import { ethers, BigNumber } from "ethers";
 
+// @ts-ignore
+import logo from "./assets/logo.svg";
+// @ts-ignore
+import cog from "./assets/cog.svg";
+// @ts-ignore
+import spinner from "./assets/spinner.svg";
+import { AlphaRouter } from "@uniswap/smart-order-router";
+import { useProvider } from "wagmi";
+import JSBI from "jsbi";
 
 export default function App() {
-  const [slippage, setSlippage] = useState(0.1);
+  const [slippage, setSlippage] = useState(5);
 
-  const [fromToken, setFromToken] = useState("ETH");
-  const [fromAmount, setFromAmount] = useState(0);
-  const [toToken, setToToken] = useState("USDC");
-  const [toAmount, setToAmount] = useState(0);
+  const [fromToken, setFromToken] = useState("WETH");
+  const [fromAmount, setFromAmount] = useState<number | undefined>(undefined);
+  const [toToken, setToToken] = useState("UNI");
+  const [toAmount, setToAmount] = useState<number | undefined>(undefined);
+  const [loading, setLoading] = useState(true);
+  const [ratio, setRatio] = useState<number | null>(null);
+  const { address }: any = useAccount();
+  const [showConfigModal, setShowConfigModal] = useState(false);
 
-  // const { address, isConnecting, isDisconnected } = useAccount();
+  const ethBalance = useBalance({
+    addressOrName: address,
+  });
+
+  const uniBalance = useBalance({
+    addressOrName: address,
+    token: "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984",
+  });
+
+  const wethBalance = useBalance({
+    addressOrName: address,
+    token: "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
+  });
+
+  const { chain }: any = useNetwork();
+  const provider = useProvider();
+
+  const DECIMALS = 18;
+
+  const TOKENS = {
+    WETH: new Token(
+      chain.id,
+      "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
+      DECIMALS,
+      "WETH",
+      "Wrapped Ether"
+    ),
+    UNI: new Token(
+      chain.id,
+      "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984",
+      DECIMALS,
+      "UNI",
+      "Uniswap"
+    ),
+  };
+
+  async function getExactInputQuote() {
+    if (fromAmount) {
+      const router = new AlphaRouter({
+        chainId: chain.id,
+        provider: provider,
+      });
+
+      let wei = ethers.utils.parseUnits(fromAmount.toString(), DECIMALS);
+
+      const route: any = await router.route(
+        CurrencyAmount.fromRawAmount(TOKENS[fromToken], JSBI.BigInt(wei)),
+        TOKENS[toToken],
+        TradeType.EXACT_INPUT,
+        {
+          recipient: address,
+          slippageTolerance: new Percent(slippage, 100),
+          deadline: 600,
+        }
+      );
+
+      const quoteAmountOut: number = route.quote.toFixed(6);
+      setRatio(parseFloat((fromAmount / quoteAmountOut).toFixed(3)));
+      setToAmount(quoteAmountOut);
+    }
+  }
+
+  async function getExactOutputQuote() {
+    if (toAmount) {
+      const router = new AlphaRouter({
+        chainId: chain.id,
+        provider: provider,
+      });
+
+      let wei = ethers.utils.parseUnits(toAmount.toString(), DECIMALS);
+
+      const route: any = await router.route(
+        CurrencyAmount.fromRawAmount(TOKENS[toToken], JSBI.BigInt(wei)),
+        TOKENS[fromToken],
+        TradeType.EXACT_OUTPUT,
+        {
+          recipient: address,
+          slippageTolerance: new Percent(slippage, 100),
+          deadline: 600,
+        }
+      );
+
+      const quoteAmountIn: number = route.quote.toFixed(6);
+      setRatio(parseFloat((quoteAmountIn / toAmount).toFixed(3)));
+      setFromAmount(quoteAmountIn);
+    }
+  }
 
   return (
     <div className="w-full h-screen p-8">
-      <img src={logo} style={{'height': '20px'}} />
       <header className="flex items-center justify-between">
         <div className="flex items-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="49"
-            height="55"
-            viewBox="0 0 49 55"
-            fill="none"
-          >
-            <circle
-              cx="24.5"
-              cy="27.5"
-              r="24.5"
-              fill="url(#paint0_linear_5_18)"
-            />
-            <path
-              d="M28.1772 14.7486L33.2647 19.831C33.4838 20.0498 33.6156 20.3411 33.6353 20.6502C33.655 20.9593 33.5612 21.265 33.3715 21.5098L33.2659 21.6294L28.1785 26.7244C27.9502 26.955 27.6423 27.0895 27.318 27.1005C26.9937 27.1115 26.6775 26.9982 26.434 26.7836C26.1906 26.5691 26.0383 26.2696 26.0085 25.9465C25.9786 25.6234 26.0733 25.3011 26.2733 25.0456L26.3788 24.926L29.2914 22.0109H15.8313C15.5198 22.0109 15.2191 21.8965 14.9863 21.6895C14.7535 21.4825 14.6048 21.1973 14.5684 20.8879L14.5594 20.7378C14.5595 20.4263 14.6739 20.1256 14.8809 19.8928C15.0879 19.66 15.3731 19.5113 15.6825 19.4749L15.8313 19.466H29.3003L26.3801 16.5496C26.1609 16.3307 26.0291 16.0394 26.0095 15.7303C25.9898 15.4212 26.0836 15.1156 26.2733 14.8707L26.3788 14.7499C26.5977 14.5307 26.889 14.3989 27.1981 14.3793C27.5072 14.3596 27.8128 14.4534 28.0577 14.6431L28.1772 14.7499L33.2647 19.831L28.1772 14.7499V14.7486ZM33.6259 33.3076L33.6335 33.4564C33.6335 33.7679 33.5191 34.0686 33.3121 34.3014C33.1051 34.5342 32.8198 34.6829 32.5105 34.7193L32.3616 34.7282H18.9016L21.8179 37.6446C22.0371 37.8635 22.1689 38.1548 22.1886 38.4639C22.2082 38.773 22.1144 39.0786 21.9248 39.3235L21.8192 39.443C21.6004 39.6622 21.3091 39.794 21 39.8136C20.6909 39.8333 20.3852 39.7395 20.1404 39.5499L20.0208 39.443L14.9334 34.3607C14.7142 34.1418 14.5824 33.8505 14.5627 33.5414C14.5431 33.2323 14.6369 32.9267 14.8265 32.6818L14.9321 32.5623L20.0195 27.4698C20.2479 27.2392 20.5557 27.1047 20.88 27.0937C21.2043 27.0827 21.5205 27.196 21.764 27.4106C22.0074 27.6251 22.1597 27.9246 22.1896 28.2477C22.2195 28.5708 22.1247 28.8931 21.9248 29.1486L21.8192 29.2682L18.9067 32.1845H32.3629C32.6744 32.1846 32.9751 32.2989 33.2079 32.5059C33.4407 32.713 33.5894 32.9982 33.6259 33.3076L33.6335 33.4564L33.6259 33.3076Z"
-              fill="white"
-            />
-            <circle cx="24.0984" cy="51.1967" r="3.21311" fill="#F3F5FF" />
-            <circle cx="24.0984" cy="3.80326" r="3.21311" fill="#F3F5FF" />
-            <defs>
-              <linearGradient
-                id="paint0_linear_5_18"
-                x1="0"
-                y1="3"
-                x2="49"
-                y2="52"
-                gradientUnits="userSpaceOnUse"
-              >
-                <stop stopColor="#C144F6" />
-                <stop offset="1" stopColor="#5149DA" />
-              </linearGradient>
-            </defs>
-          </svg>
+          <img src={logo} />
           <h1 className="text-3xl font-bold ml-4 bg-gradient-to-r from-[#C144F6] to-[#5149DA] bg-clip-text text-transparent">
             Backbone Swap Demo
           </h1>
         </div>
-        {/* <ConnectButton /> */}
+        <ConnectButton />
       </header>
       <main className="w-full h-[calc(100%-80px)] flex items-center justify-center">
         <div className="w-[500px] bg-white rounded-2xl drop-shadow-lg p-4 flex flex-col gap-2">
           <div className="flex items-center justify-between mb-2">
             <span className="font-medium text-[#7E7E7E] text-lg">Swap</span>
-            <svg
-              className="w-[24px] cursor-pointer"
-              width="34"
-              height="34"
-              viewBox="0 0 34 34"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M17 22.6667C20.1252 22.6667 22.6667 20.1252 22.6667 17C22.6667 13.8748 20.1252 11.3333 17 11.3333C13.8748 11.3333 11.3333 13.8748 11.3333 17C11.3333 20.1252 13.8748 22.6667 17 22.6667ZM17 14.1667C18.5357 14.1667 19.8333 15.4643 19.8333 17C19.8333 18.5357 18.5357 19.8333 17 19.8333C15.4643 19.8333 14.1667 18.5357 14.1667 17C14.1667 15.4643 15.4643 14.1667 17 14.1667Z"
-                fill="#7E7E7E"
+            <div className="relative">
+              <img
+                src={cog}
+                className="w-[24px] cursor-pointer"
+                onClick={() => setShowConfigModal(!showConfigModal)}
               />
-              <path
-                d="M4.03041 22.8593L5.44708 25.3102C6.19933 26.6092 8.00983 27.0966 9.31458 26.3443L10.064 25.9108C10.8836 26.5555 11.7872 27.0855 12.75 27.4862V28.3333C12.75 29.8959 14.0207 31.1667 15.5833 31.1667H18.4167C19.9792 31.1667 21.25 29.8959 21.25 28.3333V27.4862C22.2124 27.0855 23.116 26.556 23.936 25.9122L24.6854 26.3457C25.993 27.0966 27.7992 26.6121 28.5543 25.3102L29.9696 22.8607C30.345 22.2101 30.4468 21.437 30.2527 20.7113C30.0585 19.9856 29.5842 19.3667 28.934 18.9904L28.2186 18.5767C28.3707 17.532 28.3707 16.4708 28.2186 15.4261L28.934 15.0124C29.5839 14.6359 30.058 14.017 30.2521 13.2914C30.4462 12.5658 30.3446 11.7928 29.9696 11.1421L28.5543 8.69266C27.8021 7.38933 25.993 6.90058 24.6854 7.65566L23.936 8.08916C23.1164 7.44445 22.2127 6.91446 21.25 6.51383V5.66666C21.25 4.10408 19.9792 2.83333 18.4167 2.83333H15.5833C14.0207 2.83333 12.75 4.10408 12.75 5.66666V6.51383C11.7876 6.91452 10.884 7.44399 10.064 8.08775L9.31458 7.65425C8.00558 6.90199 6.19791 7.38933 5.44566 8.69125L4.03041 11.1407C3.65497 11.7913 3.55315 12.5644 3.74732 13.2901C3.9415 14.0158 4.41578 14.6348 5.06599 15.011L5.78141 15.4247C5.62874 16.4689 5.62874 17.5297 5.78141 18.5739L5.06599 18.9876C4.41597 19.3644 3.94191 19.9836 3.74778 20.7094C3.55364 21.4352 3.65528 22.2084 4.03041 22.8593V22.8593ZM8.74224 18.9522C8.58228 18.3137 8.50093 17.6582 8.49999 17C8.49999 16.3455 8.58216 15.6882 8.74083 15.0478C8.81554 14.7494 8.79097 14.4347 8.67082 14.1515C8.55068 13.8682 8.34151 13.6319 8.07499 13.4782L6.48408 12.5573L7.89791 10.1079L9.51999 11.0457C9.78452 11.1988 10.0916 11.262 10.395 11.2257C10.6985 11.1894 10.982 11.0557 11.203 10.8446C12.1614 9.93303 13.3171 9.25481 14.5803 8.86266C14.8705 8.77407 15.1246 8.59467 15.3051 8.35086C15.4857 8.10705 15.5832 7.81172 15.5833 7.50833V5.66666H18.4167V7.50833C18.4168 7.81172 18.5143 8.10705 18.6949 8.35086C18.8754 8.59467 19.1295 8.77407 19.4197 8.86266C20.6826 9.25538 21.8382 9.93352 22.797 10.8446C23.0182 11.0553 23.3017 11.1887 23.605 11.225C23.9084 11.2612 24.2153 11.1984 24.48 11.0457L26.1007 10.1093L27.5173 12.5587L25.925 13.4782C25.6586 13.632 25.4496 13.8684 25.3295 14.1516C25.2094 14.4348 25.1847 14.7494 25.2592 15.0478C25.4178 15.6882 25.5 16.3455 25.5 17C25.5 17.6531 25.4178 18.3104 25.2577 18.9522C25.1834 19.2508 25.2083 19.5655 25.3287 19.8487C25.4491 20.1319 25.6584 20.3682 25.925 20.5218L27.5159 21.4412L26.1021 23.8907L24.48 22.9542C24.2155 22.8009 23.9084 22.7377 23.6049 22.774C23.3014 22.8102 23.0179 22.9441 22.797 23.1554C21.8386 24.067 20.6829 24.7452 19.4197 25.1373C19.1295 25.2259 18.8754 25.4053 18.6949 25.6491C18.5143 25.8929 18.4168 26.1883 18.4167 26.4917L18.4195 28.3333H15.5833V26.4917C15.5832 26.1883 15.4857 25.8929 15.3051 25.6491C15.1246 25.4053 14.8705 25.2259 14.5803 25.1373C13.3174 24.7446 12.1618 24.0665 11.203 23.1554C10.9824 22.9435 10.6987 22.8093 10.395 22.7733C10.0913 22.7372 9.78404 22.8013 9.51999 22.9557L7.89933 23.8935L6.48266 21.4441L8.07499 20.5218C8.3416 20.3682 8.55092 20.1319 8.67131 19.8487C8.79169 19.5655 8.81659 19.2508 8.74224 18.9522V18.9522Z"
-                fill="#7E7E7E"
-              />
-            </svg>
+              {showConfigModal && (
+                <div className="absolute top-8 right-0 p-2 rounded-md flex flex-col gap-2 bg-white drop-shadow-md border-solid border-[1px]">
+                  <span className="font-medium text-[#7E7E7E]">
+                    Slippage: {slippage}%
+                  </span>
+                  <input
+                    type="range"
+                    min="1"
+                    max="100"
+                    step="1"
+                    className="accent-[#5149DA]"
+                    value={slippage}
+                    onChange={(e) => setSlippage(parseFloat(e.target.value))}
+                  />
+                </div>
+              )}
+            </div>
           </div>
           <div className="bg-[#EDF1F4] p-4  w-full h-[90px] rounded-lg flex justify-center items-center">
             <input
               placeholder="0"
+              min="0.0"
+              step="0.01"
               value={fromAmount}
-              onChange={(e) => setFromAmount(parseInt(e.target.value))}
+              onKeyUp={() => getExactInputQuote()}
+              onChange={(e) => setFromAmount(parseFloat(e.target.value))}
               type="number"
               className="h-full w-full mr-4 bg-transparent outline-none  text-3xl text-[#7E7E7E]"
             />
-            <div className="flex flex-col">
-              <span className="text-3xl font-medium text-right text-[#7E7E7E]">
-                {fromToken}
-              </span>
+            <div>
+              <select
+                value={fromToken}
+                onChange={(e) => {
+                  setFromAmount(0);
+                  setFromToken(e.target.value);
+                }}
+                className="outline-none flex flex-col text-3xl font-medium text-right bg-transparent text-[#7E7E7E]"
+              >
+                {toToken === "ETH" || <option value="ETH">ETH</option>}
+                {toToken === "UNI" || <option value="UNI">UNI</option>}
+                {toToken === "WETH" || <option value="WETH">WETH</option>}
+              </select>
               <span className="whitespace-nowrap text-[#7E7E7E]">
-                Balance: 0.1
+                {
+                  {
+                    ETH:
+                      "Balance: " +
+                      // @ts-ignore
+                      parseFloat(ethBalance.data?.formatted).toFixed(2),
+                    WETH:
+                      "Balance: " +
+                      // @ts-ignore
+                      parseFloat(wethBalance.data?.formatted).toFixed(2),
+                    UNI:
+                      "Balance: " +
+                      // @ts-ignore
+                      parseFloat(uniBalance.data?.formatted).toFixed(2),
+                  }[fromToken]
+                }
               </span>
             </div>
           </div>
           <div className="bg-[#EDF1F4] p-4 w-full h-[90px] rounded-lg flex justify-center items-center">
             <input
               placeholder="0"
+              min="0.0"
+              step="0.01"
               value={toAmount}
-              onChange={(e) => setToAmount(parseInt(e.target.value))}
+              onChange={(e) => setToAmount(parseFloat(e.target.value))}
+              onKeyUp={() => getExactOutputQuote()}
               type="number"
               className="h-full w-full  mr-4  bg-transparent outline-none text-3xl text-[#7E7E7E]"
             />
             <div className="flex flex-col">
-              <span className="text-3xl font-medium text-right text-[#7E7E7E]">
-                {toToken}
-              </span>
+              <select
+                value={toToken}
+                onChange={(e) => {
+                  setToAmount(0);
+                  setToToken(e.target.value);
+                }}
+                className=" outline-none flex flex-col text-3xl font-medium text-right bg-transparent text-[#7E7E7E]"
+              >
+                {fromToken === "UNI" || <option value="UNI">UNI</option>}
+                {fromToken === "WETH" || <option value="WETH">WETH</option>}
+                {fromToken === "ETH" || <option value="ETH">ETH</option>}
+              </select>
               <span className="whitespace-nowrap text-[#7E7E7E]">
-                Balance: 1045.3
+                {
+                  {
+                    ETH:
+                      "Balance: " +
+                      // @ts-ignore
+                      parseFloat(ethBalance.data?.formatted).toFixed(2),
+                    WETH:
+                      "Balance: " +
+                      // @ts-ignore
+                      parseFloat(wethBalance.data?.formatted).toFixed(2),
+                    UNI:
+                      "Balance: " +
+                      // @ts-ignore
+                      parseFloat(uniBalance.data?.formatted).toFixed(2),
+                  }[toToken]
+                }
               </span>
             </div>
           </div>
-          <button
-          // disabled={!address}
-          // className={`w-full h-[65px] mt-2 font-medium rounded-lg ${
-          //   address
-          //     ? "bg-gradient-to-r from-[#C144F6] to-[#5149DA] text-white"
-          //     : "text-[#C7C7C7] bg-[#EDF0F4] "
-          // }`}
-          >
-            {/* {address ? "Swap" : "Connect Wallet"} */}Swap
-          </button>
+          {(fromAmount || toAmount) && (
+            <div className={`mt-2 flex items-center`}>
+              {ratio !== null || (
+                <div className="flex items-center">
+                  <img src={spinner} className="animate-spin h-5 w-5 mr-3" />
+                  <span className="font-medium text-[#7E7E7E]">Loading</span>
+                </div>
+              )}
+              {ratio && (
+                <span className="font-medium text-[#7E7E7E]">
+                  1 {toToken} = {ratio} {fromToken}
+                </span>
+              )}
+            </div>
+          )}
+          <ConnectButton.Custom>
+            {({ account, openConnectModal, mounted }) => (
+              <button
+                onClick={() => openConnectModal()}
+                className={`w-full h-[65px] mt-2 font-medium rounded-lg ${
+                  address && ratio
+                    ? "bg-gradient-to-r from-[#C144F6] to-[#5149DA] text-white"
+                    : "text-white bg-[#aaaaaa]"
+                } ${ratio ? "cursor-pointer" : "cursor-auto"}`}
+              >
+                {address ? (ratio ? "Swap" : "Set Amount") : "Connect Wallet"}
+              </button>
+            )}
+          </ConnectButton.Custom>
         </div>
         <small className="text-[#7E7E7E] absolute left-8 bottom-8">
           Backbone Swap utilizes Uniswap V3 and is intended for demo purposes

@@ -6,21 +6,21 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 // @ts-ignore
-import styles from "./index.css"
+import styles from "./index.css";
 import App from "./App";
 
 // install styles to the document
-if(typeof window === 'object') {
-  const css = document.createElement('style')
-  css.setAttribute('id', 'app-style')
-  css.innerText = styles
-  document.body.appendChild(css)
+if (typeof window === "object") {
+  const css = document.createElement("style");
+  css.setAttribute("id", "app-style");
+  css.innerText = styles;
+  document.body.appendChild(css);
 }
 
-// import "@rainbow-me/rainbowkit/styles.css";
-// import { getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit";
-// import { chain, configureChains, createClient, WagmiConfig } from "wagmi";
-// import { publicProvider } from "wagmi/providers/public";
+import "@rainbow-me/rainbowkit/styles.css";
+import { getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { chain, configureChains, createClient, WagmiConfig } from "wagmi";
+import { publicProvider } from "wagmi/providers/public";
 
 export default async () => {
   /**
@@ -30,30 +30,30 @@ export default async () => {
    * This function will be automatically executed when app is loaded in Bootloader.
    */
 
-  // const { chains, provider } = configureChains(
-  //   [chain.optimism, chain.goerli],
-  //   [publicProvider()]
-  // );
+  const { chains, provider } = configureChains(
+    [chain.goerli, chain.kovan],
+    [publicProvider()]
+  );
 
-  // const { connectors } = getDefaultWallets({
-  //   appName: "Backbone Swap Demo",
-  //   chains,
-  // });
+  const { connectors } = getDefaultWallets({
+    appName: "Backbone Swap Demo",
+    chains,
+  });
 
-  // const wagmiClient = createClient({
-  //   autoConnect: true,
-  //   connectors,
-  //   provider,
-  // });
+  const wagmiClient = createClient({
+    autoConnect: true,
+    connectors,
+    provider,
+  });
 
   const root = ReactDOM.createRoot(document.getElementById("UI"));
   root.render(
     <React.StrictMode>
-      {/* <WagmiConfig client={wagmiClient}>
-        <RainbowKitProvider chains={chains}> */}
-      <App />
-      {/* </RainbowKitProvider>
-      </WagmiConfig> */}
+      <WagmiConfig client={wagmiClient}>
+        <RainbowKitProvider chains={chains}>
+          <App />
+        </RainbowKitProvider>
+      </WagmiConfig>
     </React.StrictMode>
   );
 };
