@@ -1,5 +1,7 @@
 import { resolve } from "path"
 import { defineConfig } from "vite"
+import vitePluginRequire from "vite-plugin-require"
+import polyfillNode from "rollup-plugin-polyfill-node"
 
 export default defineConfig({
   build: {
@@ -13,16 +15,20 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, "/index.html"),
       },
-      inlineDynamicImports: true,
-      plugins: [],
+      plugins: [polyfillNode()],
     },
   },
+  plugins: [vitePluginRequire({})],
   define: {
     "process.env": {},
   },
   optimizeDeps: {
     entries: [resolve(__dirname, "/index.html")],
     esbuildOptions: {
+      define: {
+        global: "globalThis",
+      },
+
       plugins: [],
     },
   },

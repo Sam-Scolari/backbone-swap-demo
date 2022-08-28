@@ -1,4 +1,4 @@
-import DataModel from '../../../backbone/core/models'
+import DataModel from '../../../backbone/sdk/lib/core/models'
 
 // Example of model with migration
 // For more info, read 

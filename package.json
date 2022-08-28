@@ -4,7 +4,7 @@
   "description": "Backbone App",
   "main": "src/index.js",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite -c vite.config-dev.js",
     "build:watch": "budo src/index.ts --live --dir tests/www --port 1337 -- -p [ tsify ]",
     "build:full": "npm run build:app && npm run build:ui && npm run build:minify:app && npm run build:minify:ui",
     "build:app": "mkdirp dist && browserify src/app/index.ts --standalone app -p [ tsify ] > dist/app.js",
@@ -36,7 +36,10 @@
     "tsify": "^5.0.4",
     "typescript": "^4.7.4",
     "uglify-js": "^3.15.4",
-    "vite": "^3.0.9"
+    "vite": "^3.0.9",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-polyfill-node": "^0.10.2",
+    "vite-plugin-require": "^1.0.1"
   },
   "dependencies": {
     "@rainbow-me/rainbowkit": "^0.4.8",

@@ -18,7 +18,8 @@
     "types": ["node"],
     "resolveJsonModule": true
   },
-  "exclude": ["tests", "dist"],
+  "include": ["./src/app"],
+  "exclude": ["tests", "dist", "node_modules"],
   "ts-node": {
     "files": true
   }
