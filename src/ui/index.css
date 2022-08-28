@@ -11,3 +11,14 @@ body {
     background-color: #F3F5FF;
     overflow: hidden;
 }
+
+/* Remove step buttons on number input */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+  -moz-appearance: textfield;
+
+}

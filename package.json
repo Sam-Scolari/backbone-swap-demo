@@ -43,9 +43,14 @@
     "@uniswap/sdk": "^3.0.3",
     "@uniswap/sdk-core": "^3.0.1",
     "@uniswap/smart-order-router": "^2.9.3",
+    "@uniswap/v3-core": "^1.0.1",
+    "@uniswap/v3-periphery": "^1.4.1",
     "@uniswap/v3-sdk": "^3.9.0",
+    "@uniswap/widgets": "^2.3.1",
     "ethers": "^5.7.0",
     "jsbi": "3.2.5",
+    "react-hot-toast": "^2.3.0",
+    "react-redux": "^8.0.2",
     "wagmi": "^0.5.12"
   }
 }
